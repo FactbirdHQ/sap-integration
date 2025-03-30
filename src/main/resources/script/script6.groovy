@@ -14,7 +14,7 @@ def Message processData(Message message) {
         operationName: 'StopBatchByBatchNumber',
         variables: [
             input: [
-                lineId: 'test',
+                lineId: orders.order.'line-id'.text(),
                 batchNumber: orders.order.'production-order'.text(),
                 actualStop: orders.order.'actual-stop'.text(),
             ]

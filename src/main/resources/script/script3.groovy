@@ -30,34 +30,24 @@ def zipTimestampsIntoMillis(NodeChildren startDates, NodeChildren startTimes) {
 // https://api.cloud.factbird.com/v1/docs/#query-lines or a looped process call
 // against https://api.cloud.factbird.com/v1/docs/#query-linesPaginated (we have
 // not yet stabilized this latter one as of this writing)
-def lineIdMapping = [
-    '1710': 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+lineIdMapping = [
+    '1710PACKING': 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 ]
 
 def Message processData(Message message) {
-    def productionOrder = new XmlSlurper().parseText(message.getProperty("productionOrder"))
-    def productionOrderSerialNumber = new XmlSlurper().parseText(message.getProperty("productionOrderSerialNumber"))
+    def processOrder = new XmlSlurper().parseText(message.getProperty("processOrder"))
 
     def messageLog = messageLogFactory.getMessageLog(message);
     if (messageLog != null) {
-        messageLog.addAttachmentAsString("productionOrder", message.getProperty("productionOrder"), "application/json");
-        messageLog.addAttachmentAsString("productionOrderSerialNumber", message.getProperty("productionOrderSerialNumber"), "application/json");
+        messageLog.addAttachmentAsString("processOrder", message.getProperty("processOrder"), "application/json");
     }
 
     def builder = new JsonBuilder()
 
     def output = []
 
-    productionOrder.A_ProductionOrder_2Type.each { order ->
-        def serialNumber = productionOrderSerialNumber.children().find { type ->
-            type.ManufacturingOrder.text() == order.ManufacturingOrder.text()
-        }
-
-        if (!serialNumber) {
-            return
-        }
-
-        def released = order.to_ProductionOrderStatus.children().any { status ->
+    processOrder.A_ProcessOrder_2Type.each { order ->
+        def released = order.to_ProcessOrderStatus.children().any { status ->
             status.StatusShortName.text() == "SETC"
             //status.StatusShortName.text() == "REL"
         }
@@ -66,11 +56,11 @@ def Message processData(Message message) {
             return
         }
 
-        def operation = order.to_ProductionOrderOperation.A_ProductionOrderOperation_2Type
-        
-        // Production Orders may propagate from one work center to another - we
+        def operation = order.to_ProcessOrderOperation.A_ProcessOrderOperation_2Type
+
+        // Process Orders may propagate from one work center to another - we
         // simply make the assumption it'll remain at the same location.
-        def initiallyAllocatedWorkCenter = order.WorkCenter[0]
+        def initiallyAllocatedWorkCenter = operation.WorkCenter[0]
 
         // With that same assumption, all operations are expected to take place
         // in order, so for actualStart and actualStop we find the extrema
@@ -86,7 +76,7 @@ def Message processData(Message message) {
         output << [
             externalLineId: order.Plant.text() + initiallyAllocatedWorkCenter.text(),
             batchNumber: order.ManufacturingOrder.text(),
-            itemNumber: serialNumber.Product.text(),
+            itemNumber: order.Material.text(),
             amount: order.TotalQuantity.text(),
             plannedStart: formatTimePair(order.MfgOrderPlannedStartDate.text(), order.MfgOrderPlannedStartTime.text()),
             actualStart: actualStart,
@@ -97,7 +87,7 @@ def Message processData(Message message) {
     def resultXml = new StringWriter()
     def xmlBuilder = new MarkupBuilder(resultXml)
 
-    xmlBuilder.'production-orders' {
+    xmlBuilder.'process-orders' {
         output.each { row ->
             'order'(action: row.actualStop ? 'stop' : (row.actualStart ? 'start' : 'create')) {
                 'line-id'(lineIdMapping[row.externalLineId])
@@ -112,6 +102,6 @@ def Message processData(Message message) {
     }
 
     message.setBody(resultXml.toString())
-    
+
     return message;
 }

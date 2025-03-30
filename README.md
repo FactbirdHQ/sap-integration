@@ -9,6 +9,10 @@ interface SAP to Factbird.
 
 ## Use cases
 
-Import products
+Common use cases include:
 
-Import Production orders
+- Import products into Factbird
+
+- Import process orders into Factbird
+
+- Manage process order execution from within Factbird (executing and terminating of a process order) ()

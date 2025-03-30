@@ -1,6 +1,5 @@
 import com.sap.gateway.ip.core.customdev.util.Message;
-import java.util.HashMap;
-import groovy.json.*;
+import groovy.json.JsonSlurper;
 
 def Message processData(Message message) {
     def body = message.getBody(String.class);    
@@ -8,5 +7,6 @@ def Message processData(Message message) {
     def payload = jsonSlurper.parseText(body);
     
     message.setProperty("manufacturingOrder", payload.data.ManufacturingOrder);
+    
     return message;
 }

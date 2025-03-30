@@ -14,16 +14,16 @@ def Message processData(Message message) {
         operationName: 'CreateBatchByItemNumber',
         variables: [
             input: [
-                lineId: 'test',
+                lineId: orders.order.'line-id'.text(),
+                batchNumber: orders.order.'batch-number'.text(),
                 itemNumber: orders.order.'item-number'.text(),
                 amount: Float.parseFloat(orders.order.'amount'.text()),
-                plannedStart: orders.order.plannedStart.text(),
+                plannedStart: orders.order.'planned-start'.text(),
             ]
         ],
         query: 'mutation CreateBatchByItemNumber($input: CreateBatchByItemNumberInput!) { createBatchByItemNumber(input: $input) { __typename } }',
     ])
 
-    // Set the generated JSON as the message body
     message.setBody(builder.toPrettyString())
     
     return message;

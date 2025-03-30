@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Synchronize Production Plan
 Bundle-SymbolicName: Synchronize_Production_Plan; singleton:=true
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1
 SAP-BundleType: RESTAPIProvider
 SAP-NodeType: IFLMAP
 SAP-RuntimeProfile: iflmap
@@ -34,4 +34,3 @@ Import-Package: com.sap.esb.application.services.cxf.interceptor,com.sap
  "
 Origin-Bundle-Name: Synchronize Production Plan
 Origin-Bundle-SymbolicName: Synchronize_Production_Plan
-
